@@ -77,10 +77,17 @@ class SubmitHandler extends RequestHandler[SubmitRequest, SubmitResponse] with L
    * @return /tmp file listing with size for troubleshooting purposes
    */
   private def scanTmpFiles(): String = {
-    new File(S3FileHandler.TmpDirectory)
+    val tmpFiles = new File("/tmp")
       .listFiles()
       .map(f => s"${f.getAbsolutePath}: ${f.length()}")
       .mkString("\n")
+
+    val starportTmpFiles = new File(S3FileHandler.TmpDirectory)
+      .listFiles()
+      .map(f => s"${f.getAbsolutePath}: ${f.length()}")
+      .mkString("\n")
+
+    s"$tmpFiles\n$starportTmpFiles"
   }
 
   /**
