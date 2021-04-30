@@ -62,7 +62,7 @@ jobs:
           command: |
             go get github.com/tcnksm/ghr
             VERSION=${VERSION:-v$(grep 'version in ThisBuild :=' version.sbt | awk -F\" '{print $2}')-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ~/workspace/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete -draft ${VERSION} ~/workspace/
 
 workflows:
   version: 2
