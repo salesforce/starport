@@ -63,7 +63,7 @@ object CleanupExistingPipelines extends StarportActivity {
     logger.info(s"Getting list of in console pipelines to delete...")
 
     // get the list of pipelines to be checked this time
-    val inConsolePipelines = db.run(ScheduledPipelines().filter(_.inConsole).result).waitForResult
+    val inConsolePipelines = db.run(ScheduledPipelines().filter(sp => sp.inConsole && sp.pipelineStatus === PipelineState.FINISHED.toString).result).waitForResult
 
     logger.info(s"Retrieved ${inConsolePipelines.size} in console pipelines.")
     metrics.register(
