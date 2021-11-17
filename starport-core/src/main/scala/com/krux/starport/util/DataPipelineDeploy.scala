@@ -138,7 +138,9 @@ object DataPipelineDeploy {
               actualStart,
               currentTimeUTC().toLocalDateTime(),
               activationStatus,
-              true
+              true,
+              if(activationStatus.equalsIgnoreCase("success")) PipelineState.RUNNING.toString else PipelineState.FAILED.toString,
+              None
             )
           )
         )

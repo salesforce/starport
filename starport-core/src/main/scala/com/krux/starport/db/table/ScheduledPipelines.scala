@@ -55,8 +55,19 @@ class ScheduledPipelines(tag: Tag) extends Table[ScheduledPipeline](tag, "schedu
    * If this still shows in the AWS Data Pipeline console
    */
   def inConsole = column[Boolean]("in_console")
+  /**
+   * The final pipeline status for monitoring purpose
+   */
 
-  def * = (awsId, pipelineId, pipelineName, scheduledStart, actualStart, deployedTime, status, inConsole) <>
+  def pipelineStatus = column[String]("pipeline_status", O.Default("RUNNING"), O.SqlType("VARCHAR(40)"))
+
+  /**
+   * Actual end time of the pipeline
+   */
+  def actualEnd = column[Option[LocalDateTime]]("actual_end")
+
+
+  def * = (awsId, pipelineId, pipelineName, scheduledStart, actualStart, deployedTime, status, inConsole, pipelineStatus, actualEnd) <>
     (ScheduledPipeline.tupled, ScheduledPipeline.unapply)
 
   def pipeline = foreignKey("sheduled_pipelines_pipelines_fk", pipelineId, TableQuery[Pipelines])(
