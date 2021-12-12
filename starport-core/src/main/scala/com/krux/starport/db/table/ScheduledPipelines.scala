@@ -59,7 +59,7 @@ class ScheduledPipelines(tag: Tag) extends Table[ScheduledPipeline](tag, "schedu
    * The final pipeline status for monitoring purpose
    */
 
-  def pipelineStatus = column[String]("pipeline_status", O.Default("RUNNING"), O.SqlType("VARCHAR(40)"))
+  def pipelineStatus = column[String]("pipeline_status", O.Default(""), O.SqlType("VARCHAR(40)"))
 
   /**
    * Actual end time of the pipeline
