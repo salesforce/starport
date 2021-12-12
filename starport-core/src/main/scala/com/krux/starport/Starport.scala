@@ -31,6 +31,7 @@ object Starport extends DataPipelineDef with HyperionCli {
 
   val schedulerClass: MainClass = com.krux.starport.StartScheduledPipelines
   val cleanupClass: MainClass = com.krux.starport.CleanupExistingPipelines
+  val statusUpdateClass: MainClass = com.krux.starport.UpdateStatusPipeline
 
   def currentHour = DateTimeFunctions.currentTimeUTC.getHour()
 
@@ -70,7 +71,14 @@ object Starport extends DataPipelineDef with HyperionCli {
 
     val cleanupPipelines = jvmOption.map(baseCleanupPipelines.withOptions(_)).getOrElse(baseCleanupPipelines)
 
-    startPipelines ~> cleanupPipelines
+    val baseStatusUpdatePipelines = JarActivity(jarLocation)(ec2)
+      .named(statusUpdateClass.simpleName)
+      .withMainClass(statusUpdateClass)
+      .onFail(alarm)
+
+    val statusUpdatePipelines = jvmOption.map(baseStatusUpdatePipelines.withOptions(_)).getOrElse(baseStatusUpdatePipelines)
+
+    startPipelines ~> statusUpdatePipelines ~> cleanupPipelines
 
   }
 

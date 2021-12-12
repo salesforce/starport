@@ -11,12 +11,14 @@ import java.time.LocalDateTime
 
 
 case class ScheduledPipeline(
-  awsId: String,
-  pipelineId: Int,
-  pipelineName: String,
-  scheduledStart: LocalDateTime,
-  actualStart: LocalDateTime,
-  deployedTime: LocalDateTime,
-  status: String,
-  inConsole: Boolean
-)
+                              awsId: String,
+                              pipelineId: Int,
+                              pipelineName: String,
+                              scheduledStart: LocalDateTime,
+                              actualStart: LocalDateTime,
+                              deployedTime: LocalDateTime,
+                              status: String,
+                              inConsole: Boolean,
+                              pipelineStatus: String,
+                              actualEnd: Option[LocalDateTime]
+                            )

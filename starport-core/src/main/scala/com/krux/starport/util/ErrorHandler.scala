@@ -102,4 +102,17 @@ object ErrorHandler extends Logging with WaitForIt {
     )
   }
 
+  /**
+   * @return the SES send ID
+   */
+  def statusUpdateActivityFailed(pipeline: Pipeline, stackTrace: Array[StackTraceElement])(implicit conf: StarportSettings): String = {
+    val stackTraceMessage = stackTrace.mkString("\n")
+    logger.warn(s"Pipeline Status Update activity failed for pipeline ${pipeline.id}, because: $stackTraceMessage")
+    Notify(
+      s"[Starport Pipeline Status Update Failure] (${conf.pipelinePrefix}) Pipeline Status Update activity failed for ${pipeline.name}",
+      stackTraceMessage,
+      pipeline
+    )
+  }
+
 }
