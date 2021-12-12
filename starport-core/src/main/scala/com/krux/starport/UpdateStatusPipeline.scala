@@ -6,6 +6,7 @@ import com.krux.starport.db.table.{Pipelines, ScheduledPipelines}
 import com.krux.starport.metric.{ConstantValueGauge, MetricSettings}
 import com.krux.starport.util.{AwsDataPipeline, ErrorHandler, PipelineState}
 import slick.jdbc.PostgresProfile.api._
+import com.krux.starport.util.PipelineState.State
 
 import java.time.LocalDateTime
 
@@ -24,21 +25,12 @@ object UpdateStatusPipeline extends StarportActivity {
     )
     .waitForResult
 
-  private def updateStatusToFinished(awsId: String, endTime: String) = db
+  private def updatePipelineStatus(awsId: String, endTime: String, pipelineState: Option[State]) = db
     .run(
       ScheduledPipelines()
         .filter(_.awsId === awsId)
         .map(r => (r.pipelineStatus, r.actualEnd))
-        .update((PipelineState.FINISHED.toString, Option(LocalDateTime.parse(endTime))))
-    )
-    .waitForResult
-
-  private def updateStatusToFailed(awsId: String, endTime: String) = db
-    .run(
-      ScheduledPipelines()
-        .filter(_.awsId === awsId)
-        .map(r => (r.pipelineStatus, r.actualEnd))
-        .update((PipelineState.FAILED.toString, Option(LocalDateTime.parse(endTime))))
+        .update((pipelineState.getOrElse(PipelineState.FAILED).toString, Option(LocalDateTime.parse(endTime))))
     )
     .waitForResult
 
@@ -107,9 +99,16 @@ object UpdateStatusPipeline extends StarportActivity {
             .filter(dataFromAWS => failedAwsIds.contains(dataFromAWS._2.awsId))
 
           healthyPipelinesDesc
-            .map(data => updateStatusToFinished(data._2.awsId, data._2.finishedTime.orNull))
+            .map(data => updatePipelineStatus(data._2.awsId, data._2.finishedTime.getOrElse(LocalDateTime.now().toString), Option(PipelineState.FINISHED)))
           failedPipelinesDesc
-            .map(data => updateStatusToFailed(data._2.awsId, data._2.finishedTime.orNull))
+            .map(data => updatePipelineStatus(data._2.awsId, data._2.finishedTime.getOrElse(LocalDateTime.now().toString), Option(PipelineState.FAILED)))
+
+          // Neither Running/About To Run(Like SCHEDULED, ACTIVATING or SCHEDULING ) nor Finished/Failed(DEACTIVATING, INACTIVE, PAUSED)
+          val otherThanRunningPipeline = awsManagedPipelineStatus
+            .filter(statusFromAWS => List(PipelineState.DEACTIVATING, PipelineState.INACTIVE, PipelineState.PAUSED).contains(statusFromAWS._2.pipelineState.get))
+
+          otherThanRunningPipeline
+            .map(data => updatePipelineStatus(data._2.awsId, data._2.finishedTime.getOrElse(LocalDateTime.now().toString), data._2.pipelineState))
 
         } catch {
           case e: Exception => println(e.printStackTrace())
@@ -132,9 +131,7 @@ object UpdateStatusPipeline extends StarportActivity {
 
       val numActivePipelines = CleanupExistingPipelines.activePipelineRecords()
 
-      metrics.register(
-        "gauges.active_pipeline_count", new ConstantValueGauge(numActivePipelines)
-      )
+      metrics.register("gauges.active_pipeline_count", new ConstantValueGauge(numActivePipelines))
     } finally {
       reporter.report()
       reporter.close()
