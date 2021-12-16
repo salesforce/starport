@@ -27,13 +27,13 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.12.13",
   libraryDependencies += scalaTestArtifact,
   organization := "com.krux",
-  test in assembly := {},  // skip test during assembly
-  assemblyMergeStrategy in assembly := {
+  assembly / test := {},  // skip test during assembly
+  assembly / assemblyMergeStrategy := {
     // scala 2.12.13 also introduces the nowarn.class in scala-compat
     case PathList(ps @ _*) if Set("nowarn$.class", "nowarn.class").contains(ps.last) =>
       MergeStrategy.first
     case x =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(x)
   },
   publishMavenStyle := true,
@@ -58,7 +58,7 @@ lazy val core = (project in file("starport-core")).
     name := "starport-core",
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "com.krux.starport",
-    assemblyJarName in assembly := "starport-core.jar",
+    assembly / assemblyJarName := "starport-core.jar",
     libraryDependencies ++= Seq(
       scalaTestArtifact,
       slickArtifact,
@@ -85,7 +85,7 @@ lazy val lambda = (project in file("starport-lambda")).
   settings(commonSettings: _*).
   settings(
     name := "starport-lambda",
-    assemblyJarName in assembly := "starport-lambda.jar",
+    assembly / assemblyJarName := "starport-lambda.jar",
     libraryDependencies ++= Seq(
       awsLambdaCore,
       awsLambdaEvents,
