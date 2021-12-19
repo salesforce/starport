@@ -60,9 +60,9 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            go get github.com/tcnksm/ghr
+            go install github.com/tcnksm/ghr@latest
             VERSION=${VERSION:-v$(grep 'ThisBuild / version :=' version.sbt | awk -F\" '{print $2}')-$(date +'%Y%m%d%H%M%S')-$(git log --format=%h -1)}
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete -draft ${VERSION} ~/workspace/
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ~/workspace/
 
 workflows:
   version: 2
