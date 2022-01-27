@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 
 import org.scalatest.wordspec.AnyWordSpec
 
-
 class SchedulerOptionParserSpec extends AnyWordSpec {
 
   val args = Array(

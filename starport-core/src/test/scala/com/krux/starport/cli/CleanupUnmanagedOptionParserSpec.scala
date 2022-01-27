@@ -7,7 +7,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import com.krux.starport.util.PipelineState
 import com.krux.starport.util.DateTimeFunctions
 
-
 class CleanupUnmanagedOptionParserSpec extends AnyWordSpec {
   "CleanupUnmanagedOptionParser" when {
     "args is empty" should {
