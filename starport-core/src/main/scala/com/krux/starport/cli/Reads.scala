@@ -7,7 +7,7 @@
 
 package com.krux.starport.cli
 
-import java.time.{LocalDateTime, ZonedDateTime, ZoneOffset}
+import java.time.{LocalDateTime, ZoneOffset, ZonedDateTime}
 
 import scopt.Read
 import scopt.Read.reads
@@ -20,6 +20,7 @@ trait Reads {
     ZonedDateTime.parse(r).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime()
   }
 
-  implicit val pipelineStateRead: scopt.Read[PipelineState.State] = scopt.Read.reads(PipelineState.withName)
+  implicit val pipelineStateRead: scopt.Read[PipelineState.State] =
+    scopt.Read.reads(PipelineState.withName)
 
 }

@@ -1,28 +1,28 @@
 val awsSdkVersion = "1.11.1034"
 val slickVersion = "3.3.3"
-val akkaVersion = "2.6.17"
+val akkaVersion = "2.6.18"
 
-val scalaTestArtifact      = "org.scalatest"          %% "scalatest"            % "3.2.10" % Test
+val scalaTestArtifact      = "org.scalatest"          %% "scalatest"            % "3.2.+" % Test
 val slickArtifact          = "com.typesafe.slick"     %% "slick"                % slickVersion
 val slickHikaricpArtifact  = "com.typesafe.slick"     %% "slick-hikaricp"       % slickVersion
-val scoptArtifact          = "com.github.scopt"       %% "scopt"                % "3.7.1"
+val scoptArtifact          = "com.github.scopt"       %% "scopt"                % "4.0.1"
 val configArtifact         = "com.typesafe"           %  "config"               % "1.4.1"
-val hyperionArtifact       = "com.krux"               %% "hyperion"             % "7.0.0-RC4"
-val slf4jApiArtifact       = "org.slf4j"              %  "slf4j-api"            % "1.7.32"
-val logbackClassicArtifact = "ch.qos.logback"         %  "logback-classic"      % "1.2.9"
+val hyperionArtifact       = "com.krux"               %% "hyperion"             % "7.0.0-RC7"
+val slf4jApiArtifact       = "org.slf4j"              %  "slf4j-api"            % "1.7.35"
+val logbackClassicArtifact = "ch.qos.logback"         %  "logback-classic"      % "1.2.10"
 val awsSdkS3               = "com.amazonaws"          %  "aws-java-sdk-s3"      % awsSdkVersion
 val awsSdkSES              = "com.amazonaws"          %  "aws-java-sdk-ses"     % awsSdkVersion
 val awsSdkSSM              = "com.amazonaws"          %  "aws-java-sdk-ssm"     % awsSdkVersion
 val awsSdkSNS              = "com.amazonaws"          %  "aws-java-sdk-sns"     % awsSdkVersion
 val awsSdkCloudWatch       = "com.amazonaws"          %  "aws-java-sdk-cloudwatch"     % awsSdkVersion
-val metricsGraphite        = "io.dropwizard.metrics"  %  "metrics-graphite"     % "4.2.6"
+val metricsGraphite        = "io.dropwizard.metrics"  %  "metrics-graphite"     % "4.2.7"
 val postgreSqlJdbc         = "org.postgresql"         %  "postgresql"           % "42.3.1"
 val awsLambdaEvents        = "com.amazonaws"          %  "aws-lambda-java-events" % "3.11.0"
 val awsLambdaCore          = "com.amazonaws"          %  "aws-lambda-java-core"   % "1.2.1"
 val akkaActorArtifact      = "com.typesafe.akka"      %% "akka-actor-typed" % akkaVersion
 
 lazy val commonSettings = Seq(
-  scalacOptions ++= Seq("-deprecation", "-feature", "-Xlint", "-Xfatal-warnings"),
+  scalacOptions ++= Seq("-deprecation", "-feature", "-Xlint"),
   scalaVersion := "2.12.15",
   libraryDependencies += scalaTestArtifact,
   organization := "com.krux",
