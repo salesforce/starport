@@ -16,13 +16,19 @@ object SummarizeUnmanagedPipelines extends StarportActivity {
     val pipelineStatuses = AwsDataPipeline.describePipeline(pipelinesInAws.toSeq: _*)
 
     logger.info("Unmanaged Pipeline Count By State:")
-    pipelineStatuses.values.groupBy(_.pipelineState).mapValues(_.size).toSeq.sortBy(_._2)(Ordering[Int].reverse)
+    pipelineStatuses.values
+      .groupBy(_.pipelineState)
+      .view
+      .mapValues(_.size)
+      .toSeq
+      .sortBy(_._2)(Ordering[Int].reverse)
       .foreach { case (state, count) => logger.info(s"${state.getOrElse("Unknown")} -> $count") }
 
     logger.info("Unmanaged Pipeline Count By Date:")
     pipelineStatuses.values
       .map(status => status.creationTime.flatMap(_.split("T").headOption).getOrElse("Unknown"))
       .groupBy(identity)
+      .view
       .mapValues(_.size)
       .toSeq
       .sortBy(_._1)(Ordering[String].reverse)
@@ -32,7 +38,7 @@ object SummarizeUnmanagedPipelines extends StarportActivity {
   def main(args: Array[String]): Unit = {
     val start = System.nanoTime()
     run()
-    val timeSpan = (System.nanoTime - start) / 1E9
+    val timeSpan = (System.nanoTime - start) / 1e9
     logger.info(s"Done in $timeSpan seconds")
   }
 

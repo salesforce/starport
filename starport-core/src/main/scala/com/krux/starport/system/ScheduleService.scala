@@ -74,6 +74,6 @@ object ScheduleService {
 
   }
 
-  def terminate() = system.terminate
+  def terminate() = system.terminate()
 
 }

@@ -40,13 +40,19 @@ object SubmitPipeline extends DateTimeFunctions with WaitForIt with Logging {
     val classLoader = new URLClassLoader(jars, this.getClass.getClassLoader)
     val pipelineDef = classLoader.loadClass(opts.pipelineObject + "$")
     // the getField("MODULE$").get(null) is a trick to dynamically load scala objects
-    pipelineDef.getField("MODULE$").get(null).asInstanceOf[DataPipelineDefGroup].schedule.asInstanceOf[RecurringSchedule]
+    pipelineDef
+      .getField("MODULE$")
+      .get(null)
+      .asInstanceOf[DataPipelineDefGroup]
+      .schedule
+      .asInstanceOf[RecurringSchedule]
   }
 
   private def cleanupJar(jarFile: File, opts: SubmitPipelineOptions): Unit = {
     if (opts.cleanUp) {
       logger.info(s"Cleaning up JAR file...")
-      jarFile.deleteOnExit() // In case of some uncaught exceptions, this will clean up the file at JVM level.
+      jarFile
+        .deleteOnExit() // In case of some uncaught exceptions, this will clean up the file at JVM level.
       jarFile.delete()
     } else {
       logger.info(s"Skipping JAR cleanup...")
@@ -90,18 +96,19 @@ object SubmitPipeline extends DateTimeFunctions with WaitForIt with Logging {
         schedule.start.isDefined && schedule.start.get.value.isLeft,
         "Starport does not work with empty or expression based start time"
       )
-      schedule.start.get.value.left.get.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime()
+      schedule.start.get.value.left.toOption.get
+        .withZoneSameInstant(ZoneOffset.UTC)
+        .toLocalDateTime()
     }
 
     def getPeriodFromSchedule(schedule: RecurringSchedule): Duration = {
       require(schedule.period.value.isLeft, "Starport does not work with expression based period")
-      schedule.period.value.left.get
+      schedule.period.value.left.toOption.get
     }
 
     val (period, start): (Duration, LocalDateTime) = (opts.frequency, opts.schedule) match {
       case (Some(freq), Some(schedule)) =>
-        val specifiedSchedule = Schedule
-          .cron
+        val specifiedSchedule = Schedule.cron
           .startDateTime(schedule.atZone(ZoneOffset.UTC))
           .every(freq)
 
@@ -166,18 +173,32 @@ object SubmitPipeline extends DateTimeFunctions with WaitForIt with Logging {
 
       runQuery(
         existingPipelineQuery
-          .map(r => (r.name, r.jar, r.isActive, r.retention, r.period, r.end, r.nextRunTime, r.owner, r.backfill))
-          .update((
-            pipelineRecord.name,
-            pipelineRecord.jar,
-            pipelineRecord.isActive,
-            pipelineRecord.retention,
-            pipelineRecord.period,
-            pipelineRecord.end,
-            pipelineRecord.nextRunTime,
-            pipelineRecord.owner,
-            pipelineRecord.backfill
-          )),
+          .map(r =>
+            (
+              r.name,
+              r.jar,
+              r.isActive,
+              r.retention,
+              r.period,
+              r.end,
+              r.nextRunTime,
+              r.owner,
+              r.backfill
+            )
+          )
+          .update(
+            (
+              pipelineRecord.name,
+              pipelineRecord.jar,
+              pipelineRecord.isActive,
+              pipelineRecord.retention,
+              pipelineRecord.period,
+              pipelineRecord.end,
+              pipelineRecord.nextRunTime,
+              pipelineRecord.owner,
+              pipelineRecord.backfill
+            )
+          ),
         0
       )
 

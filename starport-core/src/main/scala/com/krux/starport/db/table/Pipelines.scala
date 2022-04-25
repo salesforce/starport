@@ -13,7 +13,6 @@ import slick.jdbc.PostgresProfile.api._
 
 import com.krux.starport.db.record.Pipeline
 
-
 /**
  * @note when scheduling, the type is always assumed to be cron
  */
@@ -76,8 +75,20 @@ class Pipelines(tag: Tag) extends Table[Pipeline](tag, "pipelines") {
    */
   def owner = column[Option[String]]("owner", O.Default(None), O.SqlType("VARCHAR(254)"))
 
-  def * = (id.?, name, jar, `class`, isActive, retention, start, period, end, nextRunTime, backfill, owner) <>
-    (Pipeline.tupled, Pipeline.unapply)
+  def * = (
+    id.?,
+    name,
+    jar,
+    `class`,
+    isActive,
+    retention,
+    start,
+    period,
+    end,
+    nextRunTime,
+    backfill,
+    owner
+  ).mapTo[Pipeline]
 
 }
 

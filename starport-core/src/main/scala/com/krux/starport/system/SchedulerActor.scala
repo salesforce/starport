@@ -18,7 +18,7 @@ import com.krux.starport.db.record.Pipeline
 
 object SchedulerActor {
 
-  trait Msg
+  sealed trait Msg
   case object Completed extends Msg
   case class WrappedDispatcherResp(resp: DispatcherActor.ScheduleRsp) extends Msg
 

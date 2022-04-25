@@ -22,7 +22,7 @@ class SchedulerMetrics(tag: Tag) extends Table[SchedulerMetric](tag, "scheduler_
 
   def endTime = column[Option[LocalDateTime]]("end_time")
 
-  def * = (startTime, pipelineCount, endTime) <> (SchedulerMetric.tupled, SchedulerMetric.unapply)
+  def * = (startTime, pipelineCount, endTime).mapTo[SchedulerMetric]
 
 }
 

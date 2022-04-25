@@ -9,6 +9,8 @@ package com.krux.starport
 
 import java.time.LocalDateTime
 
+import scala.collection.parallel.CollectionConverters._
+
 import com.codahale.metrics.MetricRegistry
 import slick.jdbc.PostgresProfile.api._
 

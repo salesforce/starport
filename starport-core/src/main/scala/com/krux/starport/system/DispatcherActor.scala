@@ -26,7 +26,7 @@ import com.krux.starport.util.{DataPipelineDeploy, ErrorHandler}
 
 object DispatcherActor {
 
-  trait Msg
+  sealed trait Msg
 
   case class ScheduleReq(
     pipeline: Pipeline,
