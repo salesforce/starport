@@ -42,8 +42,8 @@ jobs:
       - run: cat /dev/null | sbt test:test
       - run: cat /dev/null | sbt assembly
       - run: mkdir -p workspace
-      - run: cp starport-core/target/scala-2.12/starport-core.jar workspace/.
-      - run: cp starport-lambda/target/scala-2.12/starport-lambda.jar workspace/.
+      - run: cp starport-core/target/scala-2.13/starport-core.jar workspace/.
+      - run: cp starport-lambda/target/scala-2.13/starport-lambda.jar workspace/.
       - persist_to_workspace:
           root: workspace
           paths:
