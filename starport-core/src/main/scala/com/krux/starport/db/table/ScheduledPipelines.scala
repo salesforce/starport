@@ -13,7 +13,6 @@ import slick.jdbc.PostgresProfile.api._
 
 import com.krux.starport.db.record.ScheduledPipeline
 
-
 class ScheduledPipelines(tag: Tag) extends Table[ScheduledPipeline](tag, "scheduled_pipelines") {
 
   /**
@@ -56,11 +55,15 @@ class ScheduledPipelines(tag: Tag) extends Table[ScheduledPipeline](tag, "schedu
    */
   def inConsole = column[Boolean]("in_console")
 
-  def * = (awsId, pipelineId, pipelineName, scheduledStart, actualStart, deployedTime, status, inConsole) <>
-    (ScheduledPipeline.tupled, ScheduledPipeline.unapply)
+  def * =
+    (awsId, pipelineId, pipelineName, scheduledStart, actualStart, deployedTime, status, inConsole)
+      .mapTo[ScheduledPipeline]
 
   def pipeline = foreignKey("sheduled_pipelines_pipelines_fk", pipelineId, TableQuery[Pipelines])(
-    _.id, onUpdate=ForeignKeyAction.Restrict, onDelete=ForeignKeyAction.Cascade)
+    _.id,
+    onUpdate = ForeignKeyAction.Restrict,
+    onDelete = ForeignKeyAction.Cascade
+  )
 
 }
 

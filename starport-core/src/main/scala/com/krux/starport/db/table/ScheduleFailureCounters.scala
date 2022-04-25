@@ -23,8 +23,7 @@ class ScheduleFailureCounters(tag: Tag)
 
   def updatedAt = column[LocalDateTime]("updated_at")
 
-  def * = (pipelineId, failureCount, updatedAt) <>
-    (ScheduleFailureCounter.tupled, ScheduleFailureCounter.unapply)
+  def * = (pipelineId, failureCount, updatedAt).mapTo[ScheduleFailureCounter]
 
   def pipeline = foreignKey(
       "schedule_failure_counters_pipelines_fk", pipelineId, TableQuery[Pipelines]

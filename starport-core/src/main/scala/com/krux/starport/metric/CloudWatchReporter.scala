@@ -19,8 +19,7 @@ import java.util.{
   SortedMap => JSortedMap
 }
 import java.util.concurrent.{ConcurrentHashMap, Future, TimeUnit}
-
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchAsync
 import com.amazonaws.services.cloudwatch.model.{
@@ -46,6 +45,7 @@ import com.codahale.metrics.{
   Timer
 }
 import org.slf4j.{Logger, LoggerFactory}
+
 import com.krux.starport.metric.CloudWatchReporter._
 
 /**
@@ -117,8 +117,7 @@ class CloudWatchReporter private (builder: Builder)
         }
       }
 
-      val metricDataPartitions: JIterator[JList[MetricDatum]] = metricData
-        .asScala
+      val metricDataPartitions: JIterator[JList[MetricDatum]] = metricData.asScala
         .grouped(maximumDatumsPerRequest)
         .map(_.asJava)
         .asJava
@@ -130,7 +129,7 @@ class CloudWatchReporter private (builder: Builder)
         val putMetricDataRequest: PutMetricDataRequest = new PutMetricDataRequest()
           .withNamespace(namespace)
           .withMetricData(partition)
-          cloudWatchFutures.add(cloudWatchAsyncClient.putMetricDataAsync(putMetricDataRequest))
+        cloudWatchFutures.add(cloudWatchAsyncClient.putMetricDataAsync(putMetricDataRequest))
       })
 
       cloudWatchFutures.forEach(cloudWatchFuture => {
@@ -180,10 +179,19 @@ class CloudWatchReporter private (builder: Builder)
   ): Unit = {
 
     Option(gauge.getValue) match {
-      case Some(s) => s match {
-        case num: java.lang.Number => stageMetricDatum(true, metricName, num.doubleValue(), StandardUnit.None, dimensionGauge, metricData)
-        case _ => logger.warn("Can't report a non-numeric value.")
-      }
+      case Some(s) =>
+        s match {
+          case num: java.lang.Number =>
+            stageMetricDatum(
+              true,
+              metricName,
+              num.doubleValue(),
+              StandardUnit.None,
+              dimensionGauge,
+              metricData
+            )
+          case _ => logger.warn("Can't report a non-numeric value.")
+        }
       case None => logger.warn("No value to report")
     }
 
@@ -204,7 +212,14 @@ class CloudWatchReporter private (builder: Builder)
     reportValue =
       if (builder.reportRawCountValue) currentCount
       else currentCount - lastCount
-    stageMetricDatum(true, metricName, reportValue, StandardUnit.Count, dimensionCount, metricData)
+    stageMetricDatum(
+      true,
+      metricName,
+      reportValue.toDouble,
+      StandardUnit.Count,
+      dimensionCount,
+      metricData
+    )
   }
 
   /**
@@ -436,13 +451,13 @@ class CloudWatchReporter private (builder: Builder)
 
     if (metricConfigured) {
       val dimensionedName: DimensionedName = DimensionedName.decode(metricName)
-      val scaledSum: Double = convertDuration(snapshot.getValues.toStream.sum)
+      val scaledSum: Double = convertDuration(snapshot.getValues.to(LazyList).sum.toDouble)
 
       val statisticSet: StatisticSet = new StatisticSet()
         .withSum(scaledSum)
         .withSampleCount(snapshot.size.toDouble)
-        .withMinimum(convertDuration(snapshot.getMin))
-        .withMaximum(convertDuration(snapshot.getMax))
+        .withMinimum(convertDuration(snapshot.getMin.toDouble))
+        .withMaximum(convertDuration(snapshot.getMax.toDouble))
 
       val dimensions: JSet[Dimension] = new JLinkedHashSet[Dimension](builder.globalDimensions)
       dimensions.add(
@@ -477,7 +492,7 @@ class CloudWatchReporter private (builder: Builder)
   ): Unit = {
     if (metricConfigured) {
       val dimensionedName: DimensionedName = DimensionedName.decode(metricName)
-      val total: Double = snapshot.getValues.toStream.sum
+      val total: Double = snapshot.getValues.to(LazyList).sum.toDouble
 
       val statisticSet: StatisticSet = new StatisticSet()
         .withSum(total)
@@ -501,7 +516,9 @@ class CloudWatchReporter private (builder: Builder)
           .withMetricName(dimensionedName.getName)
           .withDimensions(dimensions)
           .withStatisticValues(statisticSet)
-          .withStorageResolution(if (highResolution) highResolutionFrequency else standardResolutionFrequency)
+          .withStorageResolution(
+            if (highResolution) highResolutionFrequency else standardResolutionFrequency
+          )
           .withUnit(standardUnit)
       )
     }
@@ -572,7 +589,7 @@ object CloudWatchReporter {
 
   /**
    * Each CloudWatch API request may contain at maximum 20 datums
-   */ 
+   */
   private val maximumDatumsPerRequest: Int = 20
 
   /**
@@ -818,7 +835,7 @@ object CloudWatchReporter {
 
         val splitted: JList[String] = pair
           .split("=")
-          .toStream
+          .to(LazyList)
           .map(_.trim)
           .asJava
 

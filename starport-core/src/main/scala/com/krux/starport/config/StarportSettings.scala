@@ -9,7 +9,7 @@ package com.krux.starport.config
 
 import java.net.URL
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.{Map => IMap}
 import scala.util.Try
 
@@ -56,14 +56,15 @@ class StarportSettings(val config: Config) extends Serializable {
   val pipelinePrefix: String = config.getString("krux.starport.prefix")
 
   val extraEnvs: IMap[String, String] = config
-    .getConfig("krux.starport.extra_envs").root.asScala.mapValues { v =>
+    .getConfig("krux.starport.extra_envs").root.asScala.view.mapValues { v =>
       assert(v.valueType == ConfigValueType.STRING)
       v.unwrapped.asInstanceOf[String]
     }
+    .toMap
 
   val slackWebhookURL: Option[String] = Try(config.getString("krux.starport.slack_webhook_url")).toOption
 
-  val toEmails: Seq[String] = config.getStringList("krux.starport.notification.email.to").asScala
+  val toEmails: Seq[String] = config.getStringList("krux.starport.notification.email.to").asScala.toSeq
 
   val fromEmail: String = config.getString("krux.starport.notification.email.from")
 

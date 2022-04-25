@@ -104,7 +104,7 @@ object StartScheduledPipelines extends StarportActivity {
       )
     ).waitForResult
 
-    ScheduleService.terminate
+    ScheduleService.terminate()
   }
 
   /**

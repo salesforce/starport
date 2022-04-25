@@ -32,7 +32,7 @@ object Starport extends DataPipelineDef with HyperionCli {
   val schedulerClass: MainClass = com.krux.starport.StartScheduledPipelines
   val cleanupClass: MainClass = com.krux.starport.CleanupExistingPipelines
 
-  def currentHour = DateTimeFunctions.currentTimeUTC.getHour()
+  def currentHour = DateTimeFunctions.currentTimeUTC().getHour()
 
   def schedule = Schedule.cron.startTodayAt(currentHour, 0, 0).every(1.hour)
 

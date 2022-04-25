@@ -25,7 +25,7 @@ class FailedPipelines(tag: Tag)
 
   def checkedTime = column[LocalDateTime]("checked_time")
 
-  def * = (awsId, pipelineId, resolved, checkedTime) <> (FailedPipeline.tupled, FailedPipeline.unapply)
+  def * = (awsId, pipelineId, resolved, checkedTime).mapTo[FailedPipeline]
 
   def pipeline = foreignKey("failed_pipelines_pipelines_fk", pipelineId, TableQuery[Pipelines])(
     _.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
