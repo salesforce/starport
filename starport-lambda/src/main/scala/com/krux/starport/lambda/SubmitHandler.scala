@@ -38,7 +38,7 @@ class SubmitHandler extends RequestHandler[SubmitRequest, SubmitResponse] with L
     var outString = ""
     var errString = ""
 
-    val args: Array[String] = input.getArgs
+    val args: Array[String] = input.getArgs()
 
     try {
       args.head match {

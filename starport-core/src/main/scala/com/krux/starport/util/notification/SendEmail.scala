@@ -7,7 +7,7 @@
 
 package com.krux.starport.util.notification
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder
 import com.amazonaws.services.simpleemail.model._

@@ -7,7 +7,7 @@
 
 package com.krux.starport.util
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 import com.amazonaws.services.datapipeline.model.PipelineDescription
 

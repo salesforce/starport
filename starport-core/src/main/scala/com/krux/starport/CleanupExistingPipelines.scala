@@ -8,8 +8,10 @@
 package com.krux.starport
 
 import java.time.LocalDateTime
+import java.util.concurrent.ForkJoinPool
 
 import scala.collection.parallel.CollectionConverters._
+import scala.collection.parallel.ForkJoinTaskSupport
 
 import com.codahale.metrics.MetricRegistry
 import slick.jdbc.PostgresProfile.api._
@@ -19,7 +21,6 @@ import com.krux.starport.db.record.FailedPipeline
 import com.krux.starport.db.table.{FailedPipelines, Pipelines, ScheduledPipelines}
 import com.krux.starport.metric.{ConstantValueGauge, MetricSettings}
 import com.krux.starport.util.{AwsDataPipeline, ErrorHandler, PipelineState}
-
 
 /**
  * Retain managed pipelines with finished/error status in the retention setup, and deletes all
@@ -34,8 +35,7 @@ object CleanupExistingPipelines extends StarportActivity {
   def activePipelineRecords(): Int = {
     logger.info("Retriving active pipelines...")
 
-    val query = Pipelines()
-      .filter(_.isActive).size
+    val query = Pipelines().filter(_.isActive).size
 
     val result = db.run(query.result).waitForResult
 
@@ -75,13 +75,15 @@ object CleanupExistingPipelines extends StarportActivity {
 
     val deleteCounter = metrics.counter("counters.pipeline_deleted")
 
+    val forkJoinPool = new ForkJoinPool(parallel * Runtime.getRuntime().availableProcessors())
+    val parInConsolePipelines = inConsolePipelines.groupBy(_.pipelineId).par
+    parInConsolePipelines.tasksupport = new ForkJoinTaskSupport(forkJoinPool)
+
     // delete the in console pipelines that no longer need to be there (keep the most x recent
     // success/error piplines, where x is the retention value in db)
-    inConsolePipelines.groupBy(_.pipelineId).par.foreach { case (pipelineId, scheduledPipelines) =>
-
-      val pipelineRecord = db.run(Pipelines().filter(_.id === pipelineId).take(1).result)
-        .waitForResult
-        .head
+    parInConsolePipelines.foreach { case (pipelineId, scheduledPipelines) =>
+      val pipelineRecord =
+        db.run(Pipelines().filter(_.id === pipelineId).take(1).result).waitForResult.head
 
       // TODO refactor the try
       try {
@@ -95,7 +97,9 @@ object CleanupExistingPipelines extends StarportActivity {
         val awsManagedKeySet = pipelineStatuses.keySet
         logger.info(s"$logPrefix AWS contains ${awsManagedKeySet.size}")
         val inStarportButNotInAws = scheduledPipelines.map(_.awsId).toSet -- awsManagedKeySet
-        logger.info(s"$logPrefix updating the inConsole status to false for ${inStarportButNotInAws.size} entries")
+        logger.info(
+          s"$logPrefix updating the inConsole status to false for ${inStarportButNotInAws.size} entries"
+        )
         inStarportButNotInAws.foreach(updateToNotInConsole)
 
         val finishedPipelines = scheduledPipelines.filter { p =>
@@ -139,12 +143,11 @@ object CleanupExistingPipelines extends StarportActivity {
         // TODO refactor
         toBeKeptFailed
           .filter { sp =>
-            db.run(FailedPipelines().filter(_.awsId === sp.awsId).result)
-              .waitForResult
-              .size == 0
+            db.run(FailedPipelines().filter(_.awsId === sp.awsId).result).waitForResult.size == 0
           }
           .foreach { sp =>
-            val failedPipeline = FailedPipeline(sp.awsId, sp.pipelineId, false, currentTimeUTC().toLocalDateTime)
+            val failedPipeline =
+              FailedPipeline(sp.awsId, sp.pipelineId, false, currentTimeUTC().toLocalDateTime)
             logger.info(s"insert ${failedPipeline.awsId} to failed pipelines")
             db.run(DBIO.seq(FailedPipelines() += failedPipeline)).waitForResult
           }
@@ -173,12 +176,13 @@ object CleanupExistingPipelines extends StarportActivity {
     try {
       run()
 
-      val timeSpan = (System.nanoTime - start) / 1E9
+      val timeSpan = (System.nanoTime - start) / 1e9
       logger.info(s"All pipelines cleaned up in $timeSpan seconds")
 
       val numActivePipelines = activePipelineRecords()
       metrics.register(
-        "gauges.active_pipeline_count", new ConstantValueGauge(numActivePipelines)
+        "gauges.active_pipeline_count",
+        new ConstantValueGauge(numActivePipelines)
       )
     } finally {
       reporter.report()
