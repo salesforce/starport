@@ -35,9 +35,7 @@ object CleanupExistingPipelines extends StarportActivity {
   def activePipelineRecords(): Int = {
     logger.info("Retriving active pipelines...")
 
-    val query = Pipelines()
-      .filter(_.isActive)
-      .size
+    val query = Pipelines().filter(_.isActive).size
 
     val result = db.run(query.result).waitForResult
 
